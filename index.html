@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/start_vuejs/src/assets/style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      <section>
+        <div class="row">
+          <div class="col" v-for="post in postsList" :key="post.id">
+            <div class="card">
+              <img src="https://picsum.photos/200/300" alt="" />
+              <div class="card-body">
+                <h5 class="card-title">{{ post.title }}</h5>
+                <p class="card-txt">{{ post.body}}</p>
+              </div>
+              <div class="card-footer">
+                <button v-on:click="addLike(post)">Like</button> <!--méthode au click du bouton pour ajouter un like -->
+                <span v-if="post.likes"> {{ post.likes}} Like{{ post.likes && post.likes > 1 ? "s" : ""}}</span> <!--condition pour ajouter un s à like quand supérieur à 1 -->
+                <span v-else>0 Like</span>                
+              </div>
+              <div class="comments">
+                <form v-on:submit.prevent='(e) => addComment(e, post)'> <!--.prevent pour éviter que la page se recharge quand on valide le commentaire-->
+                  <input type="text"> 
+                </form>
+                <div class="commentsList">
+                  <div class="comment" v-for="comment in post.comments" :key="post.id">
+                    {{ comment.body }}
+                  </div>                  
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://unpkg.com/vue@3"></script>
+
+    <script>
+      const { createApp } = Vue;
+
+      createApp({
+        data() {
+          return {
+            postsList: [], //on récupère les données du tableau des posts
+            credentials: "" //relier cette data à la valeur de l'input
+          };
+        },
+        
+        methods: {
+          addLike(post) {
+            if(post.likes) {
+              post.likes++
+            } else {
+              post.likes = 1
+            }
+          },
+
+          addComment(event, post) {
+            const { value } = event.target.elements[0];
+            
+            //on va créer une clé de la value du commentaire
+            const comment = {
+              id: post.comments ? post.comments.length : 1, //si il y a déjà un commentaire, ce sera son id, sinon ce sera 1
+              body: value
+            }
+
+            // on va vérifier si il y a un commentaire dans le post, si il n'y en a pas, on rajoute la value
+            if(post.comments) {
+              post.comments.push(comment)
+            } else {
+              post.comments = [comment]
+            }
+          }
+        },
+
+        mounted() {
+          fetch("https://jsonplaceholder.typicode.com/posts")
+            .then((response) => response.json())
+            .then((data) => (this.postsList = data));
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>
+
